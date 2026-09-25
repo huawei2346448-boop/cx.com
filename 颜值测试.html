@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>测试你的颜值</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1020;
+    --panel:#121A2E;
+    --line:#22304E;
+    --text:#EDEFF6;
+    --muted:#8592B4;
+    --cyan:#4FE0E8;
+    --pink:#FF6FA5;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top: env(safe-area-inset-top, 0px);}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk', system-ui, -apple-system, sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100%;
+    padding:24px;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(79,224,232,0.10), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(255,111,165,0.10), transparent 40%);
+  }
+  .card{
+    width:100%;
+    max-width:420px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:32px 28px 28px;
+    position:relative;
+    overflow:hidden;
+  }
+  .eyebrow{
+    font-size:13px;
+    color:var(--muted);
+    letter-spacing:0.02em;
+    margin-bottom:6px;
+  }
+  h1{
+    font-size:28px;
+    font-weight:700;
+    line-height:1.25;
+    margin:0 0 10px;
+  }
+  .sub{
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.6;
+    margin-bottom:28px;
+  }
+
+  /* --- Upload screen --- */
+  .dropzone{
+    display:block;
+    border:1.5px dashed var(--line);
+    border-radius:16px;
+    padding:36px 20px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .dropzone:hover, .dropzone:focus-visible{
+    border-color:var(--cyan);
+    background:rgba(79,224,232,0.04);
+    outline:none;
+  }
+  .dropzone svg{margin-bottom:14px;}
+  .dz-title{font-size:16px;font-weight:600;margin-bottom:4px;}
+  .dz-hint{font-size:13px;color:var(--muted);}
+  input[type=file]{display:none;}
+
+  /* --- Scanning screen --- */
+  .scan-wrap{display:none;}
+  .scan-frame{
+    position:relative;
+    width:100%;
+    aspect-ratio:1/1;
+    border-radius:16px;
+    overflow:hidden;
+    background:#000;
+    margin-bottom:20px;
+    border:1px solid var(--line);
+  }
+  .scan-frame img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    filter:saturate(1.05);
+  }
+  .scan-line{
+    position:absolute;left:0;right:0;height:2px;
+    background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+    box-shadow:0 0 12px 2px rgba(79,224,232,0.7);
+    animation:sweep 1.5s ease-in-out infinite;
+  }
+  @keyframes sweep{
+    0%{top:0%;}
+    50%{top:100%;}
+    100%{top:0%;}
+  }
+  .scan-grid{
+    position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(79,224,232,0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,224,232,0.12) 1px, transparent 1px);
+    background-size:24px 24px;
+    mix-blend-mode:screen;
+  }
+  .scan-corner{
+    position:absolute;width:22px;height:22px;
+    border-color:var(--cyan);
+    border-style:solid;
+    opacity:0.9;
+  }
+  .scan-corner.tl{top:10px;left:10px;border-width:2px 0 0 2px;border-top-left-radius:6px;}
+  .scan-corner.tr{top:10px;right:10px;border-width:2px 2px 0 0;border-top-right-radius:6px;}
+  .scan-corner.bl{bottom:10px;left:10px;border-width:0 0 2px 2px;border-bottom-left-radius:6px;}
+  .scan-corner.br{bottom:10px;right:10px;border-width:0 2px 2px 0;border-bottom-right-radius:6px;}
+
+  .scan-status{
+    font-size:14px;
+    color:var(--cyan);
+    text-align:center;
+    min-height:20px;
+    margin-bottom:14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .progress-track{
+    width:100%;height:4px;border-radius:2px;
+    background:var(--line);
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg, var(--cyan), var(--pink));
+    border-radius:2px;
+    transition:width .08s linear;
+  }
+
+  /* --- Result screen --- */
+  .result-wrap{display:none;}
+  .result-frame{
+    position:relative;
+    width:100%;
+    aspect-ratio:1/1;
+    border-radius:16px;
+    overflow:hidden;
+    margin-bottom:22px;
+    border:1px solid var(--line);
+  }
+  .result-frame img{width:100%;height:100%;object-fit:cover;display:block;}
+  .result-badge{
+    position:absolute;
+    bottom:10px;right:10px;
+    background:rgba(11,16,32,0.72);
+    border:1px solid rgba(79,224,232,0.5);
+    color:var(--cyan);
+    font-size:12px;
+    padding:5px 10px;
+    border-radius:999px;
+    backdrop-filter:blur(4px);
+  }
+  .verdict{
+    font-size:24px;
+    font-weight:700;
+    text-align:center;
+    margin:0 0 8px;
+    background:linear-gradient(90deg, var(--cyan), var(--pink));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .verdict-sub{
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+    margin-bottom:24px;
+  }
+  .btn{
+    display:block;
+    width:100%;
+    padding:14px 16px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--text);
+    font-family:inherit;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .btn:hover, .btn:focus-visible{
+    border-color:var(--cyan);
+    background:rgba(79,224,232,0.06);
+    outline:none;
+  }
+
+  .footer-note{
+    margin-top:22px;
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:0.01em;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .scan-line{animation:none; top:50%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Upload screen -->
+  <div class="upload-wrap" id="uploadWrap">
+    <div class="eyebrow">颜值测试</div>
+    <h1>测试你的颜值</h1>
+    <div class="sub">上传一张照片，让系统为你打分</div>
+
+    <label class="dropzone" id="dropzone" tabindex="0">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" style="margin:0 auto 14px;display:block;">
+        <rect x="6" y="8" width="28" height="24" rx="4" stroke="#8592B4" stroke-width="1.6"/>
+        <circle cx="14" cy="16" r="2.4" stroke="#8592B4" stroke-width="1.6"/>
+        <path d="M8 27L15 20L20 25L27 17L32 23" stroke="#4FE0E8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="dz-title">点击上传照片</div>
+      <div class="dz-hint">支持 JPG / PNG，仅在本地处理</div>
+      <input type="file" id="fileInput" accept="image/*">
+    </label>
+
+    <div class="footer-note">数据来自 @cx数据</div>
+  </div>
+
+  <!-- Scanning screen -->
+  <div class="scan-wrap" id="scanWrap">
+    <div class="eyebrow">正在分析</div>
+    <h1>检测中，请稍候</h1>
+    <div class="sub">正在提取五官特征与光影比例</div>
+
+    <div class="scan-frame">
+      <img id="scanImg" src="" alt="上传的照片">
+      <div class="scan-grid"></div>
+      <div class="scan-line"></div>
+      <div class="scan-corner tl"></div>
+      <div class="scan-corner tr"></div>
+      <div class="scan-corner bl"></div>
+      <div class="scan-corner br"></div>
+    </div>
+
+    <div class="scan-status" id="scanStatus">初始化模型…</div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="footer-note">数据来自 @cx数据</div>
+  </div>
+
+  <!-- Result screen -->
+  <div class="result-wrap" id="resultWrap">
+    <div class="eyebrow">检测结果</div>
+    <div class="result-frame">
+      <img id="resultImg" src="" alt="上传的照片">
+      <div class="result-badge">已完成检测</div>
+    </div>
+    <div class="verdict">今天的你，同样很帅</div>
+    <div class="verdict-sub">颜值状态：稳定超常发挥</div>
+    <button class="btn" id="retryBtn">再测一次</button>
+    <div class="footer-note">数据来自 @cx数据</div>
+  </div>
+
+</div>
+
+<script>
+  const uploadWrap = document.getElementById('uploadWrap');
+  const scanWrap = document.getElementById('scanWrap');
+  const resultWrap = document.getElementById('resultWrap');
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const scanImg = document.getElementById('scanImg');
+  const resultImg = document.getElementById('resultImg');
+  const scanStatus = document.getElementById('scanStatus');
+  const progressFill = document.getElementById('progressFill');
+  const retryBtn = document.getElementById('retryBtn');
+
+  const messages = ['初始化模型…', '定位五官特征…', '分析光影比例…', '生成结果…'];
+
+  dropzone.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileInput.click(); }
+  });
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      scanImg.src = dataUrl;
+      resultImg.src = dataUrl;
+      startScan();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function startScan(){
+    uploadWrap.style.display = 'none';
+    resultWrap.style.display = 'none';
+    scanWrap.style.display = 'block';
+    progressFill.style.width = '0%';
+
+    const duration = 3000;
+    const startTime = performance.now();
+
+    function tick(now){
+      const elapsed = now - startTime;
+      const pct = Math.min(100, (elapsed / duration) * 100);
+      progressFill.style.width = pct + '%';
+      const msgIndex = Math.min(messages.length - 1, Math.floor((elapsed / duration) * messages.length));
+      scanStatus.textContent = messages[msgIndex];
+      if(elapsed < duration){
+        requestAnimationFrame(tick);
+      } else {
+        showResult();
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function showResult(){
+    scanWrap.style.display = 'none';
+    resultWrap.style.display = 'block';
+  }
+
+  retryBtn.addEventListener('click', () => {
+    fileInput.value = '';
+    resultWrap.style.display = 'none';
+    uploadWrap.style.display = 'block';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>我知道你的个人信息！</title>
+<style>
+  :root{
+    --paper:#e9e4d6;
+    --ink:#1d2b28;
+    --teal:#1c3532;
+    --teal-deep:#122421;
+    --stamp:#a5342a;
+    --gold:#b8925a;
+    --line: rgba(233,228,214,0.18);
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{
+    height:100%;
+    margin:0;
+    background:var(--teal-deep);
+    background-image:
+      repeating-linear-gradient(115deg, rgba(233,228,214,0.035) 0px, rgba(233,228,214,0.035) 1px, transparent 1px, transparent 26px),
+      radial-gradient(circle at 20% 10%, rgba(184,146,90,0.10), transparent 45%);
+    color:var(--paper);
+    font-family: "Songti SC","STSong","SimSun", "Noto Serif SC", serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px 16px;
+    min-height:100%;
+  }
+
+  .card{
+    width:100%;
+    max-width:460px;
+    background:var(--teal);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:34px 28px 30px;
+    position:relative;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:8px;
+    border:1px solid rgba(184,146,90,0.35);
+    border-radius:3px;
+    pointer-events:none;
+  }
+
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:0.4em;
+    color:var(--gold);
+    margin:0 0 6px;
+  }
+  h1{
+    font-size:28px;
+    line-height:1.35;
+    margin:0 0 6px;
+    font-weight:600;
+    color:var(--paper);
+  }
+  .sub{
+    font-size:14px;
+    color:rgba(233,228,214,0.65);
+    margin:0 0 28px;
+    line-height:1.7;
+  }
+
+  label{
+    display:block;
+    font-size:13px;
+    color:rgba(233,228,214,0.75);
+    margin-bottom:8px;
+  }
+  input[type=text]{
+    width:100%;
+    background:rgba(0,0,0,0.22);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:14px 14px;
+    font-size:18px;
+    letter-spacing:0.08em;
+    color:var(--paper);
+    font-family:"SF Mono","Menlo","Consolas",monospace;
+    outline:none;
+    transition:border-color .2s ease;
+  }
+  input[type=text]:focus{border-color:var(--gold);}
+  input[type=text]::placeholder{color:rgba(233,228,214,0.28);letter-spacing:0.05em;}
+
+  .err{
+    min-height:18px;
+    font-size:12.5px;
+    color:#e28b7d;
+    margin-top:8px;
+  }
+
+  button{
+    margin-top:22px;
+    width:100%;
+    padding:14px;
+    background:var(--stamp);
+    color:var(--paper);
+    border:none;
+    border-radius:3px;
+    font-size:15px;
+    letter-spacing:0.1em;
+    cursor:pointer;
+    font-family:inherit;
+    transition:filter .15s ease, transform .15s ease;
+  }
+  button:hover{filter:brightness(1.08);}
+  button:active{transform:translateY(1px);}
+
+  .foot{
+    margin-top:22px;
+    font-size:11.5px;
+    line-height:1.6;
+    color:rgba(233,228,214,0.4);
+    border-top:1px solid var(--line);
+    padding-top:16px;
+  }
+
+  /* Result view */
+  #result{display:none;}
+  .stamp-mark{
+    display:inline-block;
+    border:2px solid var(--stamp);
+    color:var(--stamp);
+    padding:3px 10px;
+    font-size:12px;
+    letter-spacing:0.3em;
+    border-radius:2px;
+    transform:rotate(-4deg);
+    margin-bottom:18px;
+  }
+  .field{
+    padding:16px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .field:last-of-type{border-bottom:none;}
+  .field .k{
+    font-size:12px;
+    color:var(--gold);
+    letter-spacing:0.15em;
+    margin-bottom:6px;
+  }
+  .field .v{
+    font-size:20px;
+    color:var(--paper);
+    font-family:"SF Mono","Menlo","Consolas",monospace;
+    letter-spacing:0.03em;
+  }
+  .again{
+    margin-top:26px;
+    background:transparent;
+    border:1px solid var(--line);
+    color:rgba(233,228,214,0.75);
+  }
+  .again:hover{border-color:var(--gold);color:var(--paper);filter:none;}
+
+  .reveal-note{
+    font-size:12.5px;
+    color:rgba(233,228,214,0.5);
+    line-height:1.7;
+    margin-top:20px;
+  }
+
+  @media (prefers-reduced-motion:no-preference){
+    .card{animation:rise .5s ease both;}
+    @keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  }
+</style>
+</head>
+<body>
+
+  <div class="card" id="cardWrap">
+
+    <div id="form">
+      <p class="eyebrow">身份证号码解析演示</p>
+      <h1>我知道你的个人信息！</h1>
+      <p class="sub">输入一个18位身份证号码，我会当场从号码本身，读出它编码的出生日期与地区——不用查任何数据库，答案早就写在号码里了。</p>
+
+      <label for="idInput">身份证号码</label>
+      <input type="text" id="idInput" placeholder="例如 11010119900307001X" maxlength="18" autocomplete="off" inputmode="text">
+      <div class="err" id="errMsg"></div>
+
+      <button id="goBtn">解析</button>
+
+      <p class="foot">全部解析在你的浏览器本地完成，号码不会被发送到任何服务器，也不会被保存。这只是用来说明：身份证号并非一串随机数字，它本身就暴露了你的出生地和生日。</p>
+    </div>
+
+    <div id="result">
+      <span class="stamp-mark">解析完成</span>
+      <div class="field">
+        <div class="k">出生日期</div>
+        <div class="v" id="outBirth">—</div>
+      </div>
+      <div class="field">
+        <div class="k">所在地区（户籍登记地）</div>
+        <div class="v" id="outRegion">—</div>
+      </div>
+      <div class="field">
+        <div class="k">性别</div>
+        <div class="v" id="outGender">—</div>
+      </div>
+      <p class="reveal-note">这些信息不是我"查"出来的，而是身份证号第 7–14 位是生日、前 6 位是行政区划代码、第 17 位奇偶决定性别——任何人拿到你的号码都能这样读出来。这正是为什么身份证号要像密码一样小心保管。</p>
+      <button class="again" id="againBtn">再解析一个</button>
+    </div>
+
+  </div>
+
+<script>
+// Province-level (first 2 digits) GB/T 2260 area codes — simplified to province granularity.
+const PROVINCE = {
+  "11":"北京市","12":"天津市","13":"河北省","14":"山西省","15":"内蒙古自治区",
+  "21":"辽宁省","22":"吉林省","23":"黑龙江省",
+  "31":"上海市","32":"江苏省","33":"浙江省","34":"安徽省","35":"福建省","36":"江西省","37":"山东省",
+  "41":"河南省","42":"湖北省","43":"湖南省","44":"广东省","45":"广西壮族自治区","46":"海南省",
+  "50":"重庆市","51":"四川省","52":"贵州省","53":"云南省","54":"西藏自治区",
+  "61":"陕西省","62":"甘肃省","63":"青海省","64":"宁夏回族自治区","65":"新疆维吾尔自治区",
+  "71":"台湾省","81":"香港特别行政区","82":"澳门特别行政区"
+};
+
+function validate(id){
+  id = id.trim().toUpperCase();
+  if(!/^\d{17}(\d|X)$/.test(id)) return "号码格式不对，需要是18位（末位可以是X）。";
+  const y = id.substr(6,4), m = id.substr(10,2), d = id.substr(12,2);
+  const date = new Date(`${y}-${m}-${d}`);
+  if(date.getFullYear()!=Number(y) || date.getMonth()+1!=Number(m) || date.getDate()!=Number(d)){
+    return "第7到14位不是一个有效的出生日期，检查一下号码是不是输对了。";
+  }
+  const prov = id.substr(0,2);
+  if(!PROVINCE[prov]) return "前2位不是已知的行政区划代码，这不像一个真实的身份证号。";
+  return null;
+}
+
+function parseId(id){
+  id = id.trim().toUpperCase();
+  const y = id.substr(6,4), m = id.substr(10,2), d = id.substr(12,2);
+  const prov = PROVINCE[id.substr(0,2)] || "未知地区";
+  const genderDigit = Number(id.substr(16,1));
+  const gender = genderDigit % 2 === 0 ? "女" : "男";
+  return {
+    birth: `${y} 年 ${Number(m)} 月 ${Number(d)} 日`,
+    region: prov,
+    gender
+  };
+}
+
+const idInput = document.getElementById('idInput');
+const errMsg = document.getElementById('errMsg');
+const form = document.getElementById('form');
+const result = document.getElementById('result');
+
+function run(){
+  const val = idInput.value;
+  const problem = validate(val);
+  if(problem){
+    errMsg.textContent = problem;
+    return;
+  }
+  errMsg.textContent = "";
+  const info = parseId(val);
+  document.getElementById('outBirth').textContent = info.birth;
+  document.getElementById('outRegion').textContent = info.region;
+  document.getElementById('outGender').textContent = info.gender;
+  form.style.display = "none";
+  result.style.display = "block";
+}
+
+document.getElementById('goBtn').addEventListener('click', run);
+idInput.addEventListener('keydown', e => { if(e.key === 'Enter') run(); });
+document.getElementById('againBtn').addEventListener('click', () => {
+  result.style.display = "none";
+  form.style.display = "block";
+  idInput.value = "";
+  errMsg.textContent = "";
+  idInput.focus();
+});
+</script>
+</body>
+</html>
